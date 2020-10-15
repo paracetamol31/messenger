@@ -13,7 +13,7 @@ public class Client {
 
     public void join() {
         try{
-            clientSocket = new Socket("localhost", 8189);
+            clientSocket = new Socket("192.168.1.38", 8189);
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
             while (true) {
