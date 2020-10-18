@@ -1,11 +1,14 @@
 package com.server;
 
+import com.Commands;
 import com.User;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 public class Server {
     private static ServerSocket serverSocket;
@@ -30,32 +33,29 @@ public class Server {
                             @Override
                             public void run() {
                                 Scanner scanner = null;
-                                try {
-                                    scanner = new Scanner(finalClientSocket.getInputStream());
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
                                 PrintWriter printWriter = null;
                                 try {
+                                    scanner = new Scanner(finalClientSocket.getInputStream());
                                     printWriter = new PrintWriter(finalClientSocket.getOutputStream(), true);
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
                                 String name = "";
-                                while (name.equals("")){
-                                    printWriter.println("Введите имя:");
+                                while (name.equals("")) {
+                                    printWriter.println("Введите имя: ");
                                     name = scanner.nextLine();
                                 }
                                 User newUser = new User(name, finalClientSocket);
                                 listUsers.add(newUser);
+                                print("Server", "Пользователь " + name + " Вошел в чат");
                                 while (true) {
                                     try {
                                         newUser.write();
+                                        if(!newUser.getLastMessage().equals(""))
                                         arrayList.put(newUser);
                                     } catch (IOException | InterruptedException e) {
                                         e.printStackTrace();
                                     }
-                                    //System.out.println(arrayList);
                                 }
                             }
                         };
@@ -69,50 +69,94 @@ public class Server {
         };
         threadPoolExecutor.submit(waitUsers);
 
-       Runnable runnableForOutput = new Runnable() {
+        Runnable runnableForOutput = new Runnable() {
             @Override
             public void run() {
                 while (true) {
                     try {
                         User user = arrayList.take();
-                        PrintWriter printWriter = null;
-                        for (User it : listUsers) {
-                            if(user!= it) {
-                                printWriter = new PrintWriter(it.getSocket().getOutputStream(), true);
-                                printWriter.println(user.getLastMesseng());
-                            }
-                        }
-                    } catch (InterruptedException | IOException e) {
+                        if(user.isAmin() && user.getLastMessage().charAt(0) == '/')
+                            commandsExecution(user.getLastMessage().substring(1), user.getName(), false);
+                        else print(user);
+                    } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
             }
         };
-       threadPoolExecutor.submit(runnableForOutput);
-       /* try {
-            serverSocket = new ServerSocket(8189);
-            System.out.println("Server starting!");
-            clientSocket = serverSocket.accept();
-            try {
-                while (true) {
+        threadPoolExecutor.submit(runnableForOutput);
 
-                    System.out.println("кто-то подключился...");
-                    Scanner scanner = new Scanner(clientSocket.getInputStream());
-                    PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream(), true);
+        Runnable printMessageForServer = new Runnable() {
+            @Override
+            public void run() {
+                while(true) {
+                    Scanner scanner = new Scanner(System.in);
                     String str = scanner.nextLine();
-                    System.out.println(str);
-                    printWriter.println("Слышу");
+                    if(str.charAt(0) == '/') commandsExecution(str.substring(1),"Server", true);
+                    else print("Server", str);
                 }
             }
-            finally {
-                clientSocket.close();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        finally {
-            serverSocket.close();
-        }*/
+        };
+        threadPoolExecutor.submit(printMessageForServer);
     }
 
+    private void commandsExecution(String stringCommand, String namAuthor, boolean isServer){
+        int indexSpace = stringCommand.indexOf(" ");
+        String command = stringCommand.substring(0, indexSpace);
+        String subject = stringCommand.substring(++indexSpace);
+        if(command.equals(Commands.BAN.toString())) {
+            ArrayList<User> tmp = listUsers.stream().filter(y-> y.getName().equals(subject))
+                    .collect(Collectors.toCollection(ArrayList::new));
+            for(User it: tmp){
+                    try {
+                        print(namAuthor, "пользователь " + it.getName()+ " получил бан");
+                        it.getSocket().close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            listUsers = listUsers.stream().filter(y -> !y.getName().equals(subject))
+                    .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
+        }
+        else if (command.equals(Commands.GIVEADMIN.toString())){
+            ArrayList<User> tmp = listUsers.stream().filter(y-> y.getName().equals(subject))
+                    .collect(Collectors.toCollection(ArrayList::new));
+            for(User it: tmp){
+                it.setAmin(true);
+                print(namAuthor, "даю пользователю " + it.getName()+ " права администратора");
+            }
+        }
+        else{
+            System.out.println("некоректная команда");
+        }
+    }
+
+    private void print(String name, String text){
+        try {
+            for (User it : listUsers) {
+                PrintWriter printWriter = new PrintWriter(it.getSocket().getOutputStream(), true);
+                printWriter.println(name + ": " + text);
+            }
+            System.out.println(name + ": " + text);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void print(User user){
+        try {
+            PrintWriter printWriter = null;
+            for (User it : listUsers) {
+                if (user != it) {
+                    printWriter = new PrintWriter(it.getSocket().getOutputStream(), true);
+                    printWriter.println(user.getName() + ": " + user.getLastMessage());
+                }
+            }
+            System.out.println(user.getName() + ": " + user.getLastMessage());
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

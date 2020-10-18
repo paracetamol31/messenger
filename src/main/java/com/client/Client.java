@@ -34,7 +34,7 @@ public class Client {
                     try {
                         Scanner scanner = new Scanner(serverSocket.getInputStream());
                         while (true){
-                         //   System.out.println("жду");
+                            //System.out.println("жду");
                             String str = scanner.nextLine();
                             System.out.println(str);
                         }
