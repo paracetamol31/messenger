@@ -7,6 +7,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 public class Server {
     private static ServerSocket serverSocket;
@@ -84,6 +85,11 @@ public class Server {
             }
         };
         threadPoolExecutor.submit(printMessageForServer);
+    }
+
+    protected static void deleteUser(User user){
+        listUsers = listUsers.stream().filter(y -> y != user)
+                .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
     }
 }
 

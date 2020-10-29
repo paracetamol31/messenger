@@ -6,7 +6,7 @@ import java.util.Scanner;
 
 public class User {
     private String name;
-    private Socket socket;
+    private  Socket socket;
     private String lastMessage;
     private boolean admin;
 
@@ -53,5 +53,9 @@ public class User {
         Scanner scanner = new Scanner(socket.getInputStream());
         String str = scanner.nextLine();
         lastMessage = str;
+    }
+
+    public boolean isClosed(){
+       return socket.isClosed();
     }
 }

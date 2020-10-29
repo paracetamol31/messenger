@@ -41,7 +41,7 @@ public class MessengerCommands extends Server {
     }
 
     private static void ban(String subject, String nameAuthor){
-        ArrayList<User> tmp = listUsers.stream().filter(y -> y.getName().equals(subject))
+        ArrayList<User> tmp = listUsers.stream().filter(y -> !y.isClosed()).filter(y -> y.getName().equals(subject))
                 .collect(Collectors.toCollection(ArrayList::new));
         for (User it : tmp) {
             try {
@@ -51,12 +51,12 @@ public class MessengerCommands extends Server {
                 e.printStackTrace();
             }
         }
-        listUsers = listUsers.stream().filter(y -> !y.getName().equals(subject))
+        listUsers = listUsers.stream().filter(y -> !y.isClosed()).filter(y -> !y.getName().equals(subject))
                 .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
     }
 
     private static void giveAdmin(String subject, String nameAuthor){
-        ArrayList<User> tmp = listUsers.stream().filter(y -> y.getName().equals(subject))
+        ArrayList<User> tmp = listUsers.stream().filter(y -> !y.isClosed()).filter(y -> y.getName().equals(subject))
                 .collect(Collectors.toCollection(ArrayList::new));
         for (User it : tmp) {
             it.setAdmin(true);
