@@ -36,15 +36,13 @@ public class RegistrationOfUsers extends InitializationOfUsers {
 
         User newUser = new User(name, clientSocket);
         listUsers.add(newUser);
-
-        Output.print("Server", "Пользователь " + name + " Вошел в чат");
         return newUser;
     }
 
     private static void addingUserToDatabase(String name, String password){
         OutputStreamWriter writer = null;
         try {
-            writer = new OutputStreamWriter(new FileOutputStream(FILE_PATH, true));
+            writer = new OutputStreamWriter(new FileOutputStream(PATH_TO_THE_LIST_OF_USERS, true));
             writer.append(name).append(" ").append(password).append(String.valueOf('\n'));
         } catch (IOException e) {
             e.printStackTrace();
@@ -59,7 +57,7 @@ public class RegistrationOfUsers extends InitializationOfUsers {
     }
 
     private static boolean isUserExists(String name){
-        File file = new File(FILE_PATH);
+        File file = new File(PATH_TO_THE_LIST_OF_USERS);
         try {
             Scanner readingFromFile = new Scanner(file);
             while (readingFromFile.hasNext()) {

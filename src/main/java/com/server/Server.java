@@ -13,7 +13,8 @@ public class Server {
     private static ServerSocket serverSocket;
     protected static CopyOnWriteArrayList<User> listUsers = new CopyOnWriteArrayList<>();
     protected static LinkedBlockingQueue<User> messages = new LinkedBlockingQueue<>(20);
-    final static protected String FILE_PATH = "src/main/resources/users.txt";
+    final static protected String PATH_TO_THE_LIST_OF_USERS = "src/main/resources/users.txt";
+    final static protected String PATH_TO_THE_LIST_MESSAGES = "src/main/resources/messages.txt";
     final static private int PORT = 8189;
 
     public void start() throws IOException {
@@ -32,6 +33,8 @@ public class Server {
                         @Override
                         public void run() {
                             User newUser = InitializationOfUsers.initialization(finalClientSocket);
+                            Output.storyOutput(newUser);
+                            Output.print("Server", "Пользователь " + newUser.getName() + " Вошел в чат");
                             while (true) {
                                 try {
                                     newUser.write();

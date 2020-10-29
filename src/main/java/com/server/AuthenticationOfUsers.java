@@ -24,7 +24,7 @@ public class AuthenticationOfUsers extends InitializationOfUsers {
                 printWriter.println("Введите имя: ");
                 name = scanner.nextLine();
                 while (name.equals("") || Validator.validateThereIsSpace(name)) {
-                    printWriter.println("Имя некоректно или уже используется, введите новое: ");
+                    printWriter.println("имя некоректно или уже используется, введите новое: ");
                     name = scanner.nextLine();
                 }
 
@@ -43,13 +43,11 @@ public class AuthenticationOfUsers extends InitializationOfUsers {
 
         User newUser = new User(name, clientSocket);
         listUsers.add(newUser);
-
-        Output.print("Server", "Пользователь " + name + " Вошел в чат");
         return newUser;
     }
 
     private static boolean isTheUserRegistered(String nameUser){
-        File file = new File(FILE_PATH);
+        File file = new File(PATH_TO_THE_LIST_OF_USERS);
         Scanner readingFromFile = null;
         String str = "";
         try {
