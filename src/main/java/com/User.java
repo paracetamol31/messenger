@@ -8,7 +8,7 @@ public class User {
     private String name;
     private Socket socket;
     private String lastMessage;
-    private boolean amin;
+    private boolean admin;
 
     public String getName() {
         return name;
@@ -22,8 +22,8 @@ public class User {
         return lastMessage;
     }
 
-    public boolean isAmin() {
-        return amin;
+    public boolean isAdmin() {
+        return admin;
     }
 
     public void setName(String name) {
@@ -38,15 +38,15 @@ public class User {
         this.lastMessage = lastMessage;
     }
 
-    public void setAmin(boolean amin) {
-        this.amin = amin;
+    public void setAdmin(boolean admin) {
+        this.admin = admin;
     }
 
     public User(String name, Socket socket) {
         this.name = name;
         this.socket = socket;
         this.lastMessage = "";
-        amin = false;
+        admin = false;
     }
 
     public void write() throws IOException {
