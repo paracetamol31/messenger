@@ -1,8 +1,5 @@
 package com.server;
 
-import com.User;
-import com.Validator;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -12,8 +9,8 @@ import java.util.Scanner;
 
 public class AuthenticationOfUsers extends InitializationOfUsers {
     public static User authentication(Socket clientSocket){
-        Scanner scanner = null;
-        PrintWriter printWriter = null;
+        Scanner scanner;
+        PrintWriter printWriter;
         String name = "";
         try {
             scanner = new Scanner(clientSocket.getInputStream());
@@ -28,7 +25,7 @@ public class AuthenticationOfUsers extends InitializationOfUsers {
                     name = scanner.nextLine();
                 }
 
-                String password = "";
+                String password;
                 printWriter.println("Введите пароль: ");
                 password = scanner.nextLine();
                 while (password.equals("") || Validator.validateThereIsSpace(password)) {
@@ -48,8 +45,8 @@ public class AuthenticationOfUsers extends InitializationOfUsers {
 
     private static boolean isTheUserRegistered(String nameUser){
         File file = new File(PATH_TO_THE_LIST_OF_USERS);
-        Scanner readingFromFile = null;
-        String str = "";
+        Scanner readingFromFile;
+        String str;
         try {
             readingFromFile = new Scanner(file);
             while (readingFromFile.hasNextLine()) {

@@ -1,16 +1,13 @@
 package com.server;
 
-import com.User;
-import com.Validator;
-
 import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
 
 public class InitializationOfUsers extends Server {
     public static User initialization(Socket clientSocket) {
-        Scanner scanner = null;
-        PrintWriter printWriter = null;
+        Scanner scanner;
+        PrintWriter printWriter;
         String str = "";
         try {
             scanner = new Scanner(clientSocket.getInputStream());

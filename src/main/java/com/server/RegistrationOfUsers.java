@@ -1,8 +1,5 @@
 package com.server;
 
-import com.User;
-import com.Validator;
-
 import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;

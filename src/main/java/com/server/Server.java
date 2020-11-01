@@ -1,7 +1,5 @@
 package com.server;
 
-import com.User;
-
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -19,80 +17,55 @@ public class Server {
 
     public void start() throws IOException {
         serverSocket = new ServerSocket(PORT);
-        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(51, 51,
-                50, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(1));
-        Runnable waitUsers = () -> {
-            ThreadPoolExecutor threadPoolExecutorForUsers = new ThreadPoolExecutor(50, 50,
-                    50, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(1));
-            try {
-                Socket clientSocket = new Socket();
-                while (true) {
-                    clientSocket = serverSocket.accept();
-                    Socket finalClientSocket = clientSocket;
-                    Runnable initUsers = new Runnable() {
-                        @Override
-                        public void run() {
-                            User newUser = InitializationOfUsers.initialization(finalClientSocket);
-                            Output.storyOutput(newUser);
-                            Output.print("Server", "Пользователь " + newUser.getName() + " Вошел в чат");
-                            while (true) {
-                                try {
-                                    newUser.write();
-                                    if (!newUser.getLastMessage().equals(""))
-                                        messages.put(newUser);
-                                } catch (IOException | InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        }
-                    };
-                    threadPoolExecutorForUsers.submit(initUsers);
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        };
-        threadPoolExecutor.submit(waitUsers);
-
-        Runnable runnableForOutput = new Runnable() {
-            @Override
-            public void run() {
-                User user = null;
-                while (true) {
-                    try {
-                        user = messages.take();
-                        if (user.isAdmin() && user.getLastMessage().charAt(0) == '/') {
-                            MessengerCommands.callingCommandByUser(user);
-                        }
-                        else Output.print(user.getName(), user.getLastMessage());
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+        Output.outputStoryForServer();
+        Thread connectWithNewClients = new Thread(() -> {
+            while (true) {
+                try {
+                    Socket finalClientSocket = serverSocket.accept();
+                    User newUser =  InitializationOfUsers.initialization(finalClientSocket);
+                    if(newUser == null) {
+                        finalClientSocket.close();
+                        continue;
                     }
+                    Output.outputStoryForUser(newUser);
+                    Output.print("Server", "Пользователь " + newUser.getName() + " Вошел в чат");
+                    newUser.startGiveMessages();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
-        };
-        threadPoolExecutor.submit(runnableForOutput);
+        });
+        connectWithNewClients.start();
 
-        Runnable printMessageForServer = new Runnable() {
-            @Override
-            public void run() {
+        Thread sendsMessagesToUsers = new Thread(() -> {
+            while (true) {
+                try {
+                    User user = messages.take();
+                    if (user.isAdmin() && user.getLastMessage().charAt(0) == '/') {
+                        MessengerCommands.callingCommandByUser(user);
+                    } else Output.print(user.getName(), user.getLastMessage());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        sendsMessagesToUsers.start();
+
+        Thread readingMessagesFromTheServer = new Thread(() -> {
+            while (true) {
                 Scanner scanner = new Scanner(System.in);
-                while (true) {
-                    String str = scanner.nextLine();
-                    if (str.charAt(0) == '/') {
-                        MessengerCommands.callingCommandByServer(str);
-                    }
-                    else Output.print("Server", str);
-                }
+                String str = scanner.nextLine();
+                if (str.charAt(0) == '/') {
+                    MessengerCommands.callingCommandByServer(str);
+                } else Output.print("Server", str);
             }
-        };
-        threadPoolExecutor.submit(printMessageForServer);
+        });
+        readingMessagesFromTheServer.start();
     }
 
     protected static void deleteUser(User user){
         listUsers = listUsers.stream().filter(y -> y != user)
                 .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
+        user.stop();
     }
 }
-
